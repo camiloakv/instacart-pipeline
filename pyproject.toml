@@ -15,3 +15,8 @@ dependencies = [
     "uvicorn>=0.51.0",
     "xgboost>=3.3.0",
 ]
+
+[dependency-groups]
+dev = [
+    "kaggle>=2.2.3",
+]
