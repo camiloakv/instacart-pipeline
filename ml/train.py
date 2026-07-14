@@ -16,8 +16,13 @@ import numpy as np
 import pandas as pd
 import psycopg2
 import xgboost as xgb
+from dotenv import load_dotenv
 from sklearn.metrics import roc_auc_score, log_loss, accuracy_score
 from sklearn.model_selection import GroupShuffleSplit
+
+# Loads variables from a .env file at the project root into os.environ,
+# so this script works the same whether run via Docker or directly (uv run).
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 MODEL_OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "models", "model.json")
 
@@ -44,12 +49,13 @@ TARGET_COLUMN = "target_reordered"
 
 def load_features_from_postgres() -> pd.DataFrame:
     conn = psycopg2.connect(
-        host=os.environ.get("POSTGRES_HOST", "localhost"),
+        host=os.environ.get("POSTGRES_HOST_LOCAL", "localhost"),
         port=os.environ.get("POSTGRES_PORT", "5432"),
         user=os.environ["POSTGRES_USER"],
         password=os.environ["POSTGRES_PASSWORD"],
         dbname=os.environ["POSTGRES_DB"],
     )
+    print("CONN CREATED")
     query = """
         select
             user_id, product_id,
@@ -67,7 +73,9 @@ def load_features_from_postgres() -> pd.DataFrame:
         cur.execute(query)
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
+    print("FETCHED")
     conn.close()
+    print("CONN CLOSED")
     return pd.DataFrame(rows, columns=columns)
 
 
