@@ -1,14 +1,34 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
-.venv
-
+# --- Secrets ---
 .env
 
-data/
+# --- Data ---
+data/raw/
+data/processed/
+*.csv
+*.zip
+
+# --- dbt ---
+dbt/dbt_packages/
+dbt/target/
+dbt/logs/
+
+# --- Airflow ---
+airflow/logs/
+airflow/__pycache__/
+**/__pycache__/
+*.pyc
+
+# --- ML artifacts ---
+ml/models/*.json
+ml/models/*.pkl
+ml/models/*.joblib
+
+# --- Python ---
+.venv/
+venv/
+*.egg-info/
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/

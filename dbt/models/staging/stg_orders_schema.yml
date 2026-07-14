@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Cleaned orders table, one row per order."
+    columns:
+      - name: order_id
+        description: "Primary key for an order."
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: "Foreign key to the user who placed the order."
+        tests:
+          - not_null
+      - name: order_number
+        description: "The order sequence number for this user (1 = first order)."
+        tests:
+          - not_null
+      - name: order_dow
+        description: "Day of week the order was placed (0-6)."
+        tests:
+          - not_null
+      - name: order_hour_of_day
+        description: "Hour of day the order was placed (0-23)."
+        tests:
+          - not_null
+      - name: eval_set
+        description: "Which Kaggle split this order belongs to (prior/train/test)."
+        tests:
+          - accepted_values:
+              values: ['prior', 'train', 'test']

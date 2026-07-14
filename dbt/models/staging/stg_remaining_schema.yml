@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: "Cleaned products dimension table."
+    columns:
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        tests:
+          - not_null
+      - name: aisle_id
+        tests:
+          - not_null
+      - name: department_id
+        tests:
+          - not_null
+
+  - name: stg_aisles
+    description: "Cleaned aisles dimension table."
+    columns:
+      - name: aisle_id
+        tests:
+          - unique
+          - not_null
+      - name: aisle
+        tests:
+          - not_null
+
+  - name: stg_departments
+    description: "Cleaned departments dimension table."
+    columns:
+      - name: department_id
+        tests:
+          - unique
+          - not_null
+      - name: department
+        tests:
+          - not_null
+
+  - name: stg_order_products_prior
+    description: "Order-product line items from the 'prior' (historical) split."
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+      - name: reordered
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+  - name: stg_order_products_train
+    description: "Order-product line items from the 'train' (most recent order) split."
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+      - name: reordered
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
