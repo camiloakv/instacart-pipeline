@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: fct_user_product_features
+    description: "One row per (user, product) pair with prior purchase history. Feature table consumed directly by the XGBoost training script."
+    columns:
+      - name: user_id
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+      - name: user_total_orders
+        tests:
+          - not_null
+      - name: product_reorder_rate
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              inclusive: true
+      - name: up_times_ordered
+        tests:
+          - not_null
+      - name: target_reordered
+        description: "1 if the product appeared in the user's most recent order, else 0."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - user_id
+            - product_id
