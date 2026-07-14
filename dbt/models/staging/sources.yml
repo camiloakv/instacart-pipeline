@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "Raw Instacart tables loaded by Airflow's dag_ingest_raw"
+    tables:
+      - name: orders
+      - name: order_products_prior
+      - name: order_products_train
+      - name: products
+      - name: aisles
+      - name: departments

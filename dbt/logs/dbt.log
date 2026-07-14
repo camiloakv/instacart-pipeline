@@ -1,0 +1,128 @@
+==================== 2026-07-14T03:06:56.720148Z | 019f5e97-8731-7a42-a665-2cd681ae0602 ====================
+03:06:56.722018 [info ]: dbt-core 2.0.0-alpha.4
+03:06:56.724175 [info ]: Started loading project
+03:06:56.741988 [info ]: Loading profiles.yml
+03:06:56.752857 [info ]: Finished loading project [  0.03s]
+03:06:56.753866 [error]: [InvalidConfig (dbt1005)]: Configuration Error: The 'postgres' adapter is not yet supported by dbt Fusion. Supported adapters: snowflake, bigquery, databricks, redshift, duckdb, salesforce. To use an experimental adapter, set the environment variable DBT_ALLOW_EXPERIMENTAL_ADAPTERS=true. Note that experimental adapters may be unstable and are not yet recommended for production use.
+03:06:57.362454 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error [642ms]
+==================== 2026-07-14T03:20:14.469579Z | 019f5ea3-b361-75e0-adb6-bcbc769e9067 ====================
+03:20:14.473197 [info ]: dbt-core 2.0.0-alpha.4
+03:20:14.481287 [info ]: Started loading project
+03:20:14.513953 [info ]: Loading profiles.yml
+03:20:14.530899 [info ]: Finished loading project [  0.05s]
+03:20:14.531216 [error]: [InvalidConfig (dbt1005)]: Configuration Error: The 'postgres' adapter is not yet supported by dbt Fusion. Supported adapters: snowflake, bigquery, databricks, redshift, duckdb, salesforce. To use an experimental adapter, set the environment variable DBT_ALLOW_EXPERIMENTAL_ADAPTERS=true. Note that experimental adapters may be unstable and are not yet recommended for production use.
+03:20:15.163961 [info ]: 
+==================== Execution Summary =====================
+Finished 'debug' with 1 error [694ms]
+[0m03:38:12.674084 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x71610f77efc0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x71610ebc9760>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x71610e89eab0>]}
+
+
+============================== 03:38:12.748713 | bc138ccf-bbe5-4a54-97a4-b9e0db81a4d6 ==============================
+[0m03:38:12.748713 [info ] [MainThread]: Running with dbt=1.8.2
+[0m03:38:12.750362 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '/opt/airflow/dbt', 'version_check': 'True', 'fail_fast': 'False', 'log_path': '/opt/airflow/dbt/logs', 'debug': 'False', 'warn_error': 'None', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'invocation_command': 'dbt debug', 'log_format': 'default', 'static_parser': 'True', 'target_path': 'None', 'introspect': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m03:38:12.810020 [info ] [MainThread]: dbt version: 1.8.2
+[0m03:38:12.811346 [info ] [MainThread]: python version: 3.12.4
+[0m03:38:12.812828 [info ] [MainThread]: python path: /home/airflow/.local/bin/python
+[0m03:38:12.814169 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[0m03:38:12.958636 [info ] [MainThread]: Using profiles dir at /opt/airflow/dbt
+[0m03:38:12.960153 [info ] [MainThread]: Using profiles.yml file at /opt/airflow/dbt/profiles.yml
+[0m03:38:12.961472 [info ] [MainThread]: Using dbt_project.yml file at /opt/airflow/dbt/dbt_project.yml
+[0m03:38:12.963611 [info ] [MainThread]: adapter type: postgres
+[0m03:38:12.964848 [info ] [MainThread]: adapter version: 1.8.2
+[0m03:38:13.099010 [info ] [MainThread]: Configuration:
+[0m03:38:13.101104 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m03:38:13.102599 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m03:38:13.104119 [info ] [MainThread]: Required dependencies:
+[0m03:38:13.105461 [debug] [MainThread]: Executing "git --help"
+[0m03:38:13.114302 [info ] [MainThread]:  - git [[31mERROR[0m]
+
+[0m03:38:13.115726 [info ] [MainThread]: Connection:
+[0m03:38:13.116975 [info ] [MainThread]:   host: postgres
+[0m03:38:13.118121 [info ] [MainThread]:   port: 5432
+[0m03:38:13.119448 [info ] [MainThread]:   user: airflow_user
+[0m03:38:13.122611 [info ] [MainThread]:   database: instacart
+[0m03:38:13.124964 [info ] [MainThread]:   schema: dbt_dev
+[0m03:38:13.127230 [info ] [MainThread]:   connect_timeout: 10
+[0m03:38:13.128691 [info ] [MainThread]:   role: None
+[0m03:38:13.130446 [info ] [MainThread]:   search_path: None
+[0m03:38:13.131742 [info ] [MainThread]:   keepalives_idle: 0
+[0m03:38:13.140623 [info ] [MainThread]:   sslmode: None
+[0m03:38:13.142515 [info ] [MainThread]:   sslcert: None
+[0m03:38:13.144042 [info ] [MainThread]:   sslkey: None
+[0m03:38:13.145709 [info ] [MainThread]:   sslrootcert: None
+[0m03:38:13.146927 [info ] [MainThread]:   application_name: dbt
+[0m03:38:13.148946 [info ] [MainThread]:   retries: 1
+[0m03:38:13.150380 [info ] [MainThread]: Registered adapter: postgres=1.8.2
+[0m03:38:13.302820 [debug] [MainThread]: Acquiring new postgres connection 'debug'
+[0m03:38:13.395476 [debug] [MainThread]: Using postgres connection "debug"
+[0m03:38:13.397206 [debug] [MainThread]: On debug: select 1 as id
+[0m03:38:13.398527 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m03:38:13.413788 [debug] [MainThread]: SQL status: SELECT 1 in 0.015 seconds
+[0m03:38:13.416870 [debug] [MainThread]: On debug: Close
+[0m03:38:13.419364 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m03:38:13.421494 [info ] [MainThread]: [31m1 check failed:[0m
+[0m03:38:13.424482 [info ] [MainThread]: Error from git --help: User does not have permissions for this command: "git"
+
+[0m03:38:13.428141 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_wall_clock_time": 0.84121585, "process_user_time": 2.36858, "process_kernel_time": 1.499704, "process_mem_max_rss": "111512", "process_in_blocks": "72624", "process_out_blocks": "696", "command_success": false}
+[0m03:38:13.430231 [debug] [MainThread]: Command `dbt debug` failed at 03:38:13.430002 after 0.84 seconds
+[0m03:38:13.431661 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m03:38:13.433075 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x71610f4214c0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x71610e8e52e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x71610ecada60>]}
+[0m03:38:13.434675 [debug] [MainThread]: Flushing usage events
+[0m03:43:54.921179 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x723240bd69f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x72323e99f800>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x72323ed5d9d0>]}
+
+
+============================== 03:43:54.947947 | c5c8f7a6-779f-4760-8a69-bab3522c6915 ==============================
+[0m03:43:54.947947 [info ] [MainThread]: Running with dbt=1.8.2
+[0m03:43:54.949455 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'fail_fast': 'False', 'version_check': 'True', 'log_path': '/opt/airflow/dbt/logs', 'profiles_dir': '/opt/airflow/dbt', 'debug': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'log_format': 'default', 'invocation_command': 'dbt debug', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'target_path': 'None', 'introspect': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m03:43:54.988281 [info ] [MainThread]: dbt version: 1.8.2
+[0m03:43:54.989710 [info ] [MainThread]: python version: 3.12.4
+[0m03:43:54.990936 [info ] [MainThread]: python path: /home/airflow/.local/bin/python
+[0m03:43:54.992017 [info ] [MainThread]: os info: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36
+[0m03:43:55.088090 [info ] [MainThread]: Using profiles dir at /opt/airflow/dbt
+[0m03:43:55.089805 [info ] [MainThread]: Using profiles.yml file at /opt/airflow/dbt/profiles.yml
+[0m03:43:55.091463 [info ] [MainThread]: Using dbt_project.yml file at /opt/airflow/dbt/dbt_project.yml
+[0m03:43:55.093853 [info ] [MainThread]: adapter type: postgres
+[0m03:43:55.095308 [info ] [MainThread]: adapter version: 1.8.2
+[0m03:43:55.201881 [info ] [MainThread]: Configuration:
+[0m03:43:55.203695 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m03:43:55.205007 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m03:43:55.206376 [info ] [MainThread]: Required dependencies:
+[0m03:43:55.207409 [debug] [MainThread]: Executing "git --help"
+[0m03:43:55.212511 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]\n           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]\n           [--super-prefix=<path>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone     Clone a repository into a new directory\n   init      Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add       Add file contents to the index\n   mv        Move or rename a file, a directory, or a symlink\n   restore   Restore working tree files\n   rm        Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect    Use binary search to find the commit that introduced a bug\n   diff      Show changes between commits, commit and working tree, etc\n   grep      Print lines matching a pattern\n   log       Show commit logs\n   show      Show various types of objects\n   status    Show the working tree status\n\ngrow, mark and tweak your common history\n   branch    List, create, or delete branches\n   commit    Record changes to the repository\n   merge     Join two or more development histories together\n   rebase    Reapply commits on top of another base tip\n   reset     Reset current HEAD to the specified state\n   switch    Switch branches\n   tag       Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch     Download objects and refs from another repository\n   pull      Fetch from and integrate with another repository or a local branch\n   push      Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m03:43:55.213711 [debug] [MainThread]: STDERR: "b''"
+[0m03:43:55.214619 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m03:43:55.216170 [info ] [MainThread]: Connection:
+[0m03:43:55.217172 [info ] [MainThread]:   host: postgres
+[0m03:43:55.218137 [info ] [MainThread]:   port: 5432
+[0m03:43:55.219110 [info ] [MainThread]:   user: airflow_user
+[0m03:43:55.220043 [info ] [MainThread]:   database: instacart
+[0m03:43:55.221152 [info ] [MainThread]:   schema: dbt_dev
+[0m03:43:55.222638 [info ] [MainThread]:   connect_timeout: 10
+[0m03:43:55.223703 [info ] [MainThread]:   role: None
+[0m03:43:55.224652 [info ] [MainThread]:   search_path: None
+[0m03:43:55.225604 [info ] [MainThread]:   keepalives_idle: 0
+[0m03:43:55.226736 [info ] [MainThread]:   sslmode: None
+[0m03:43:55.227992 [info ] [MainThread]:   sslcert: None
+[0m03:43:55.229141 [info ] [MainThread]:   sslkey: None
+[0m03:43:55.230161 [info ] [MainThread]:   sslrootcert: None
+[0m03:43:55.231153 [info ] [MainThread]:   application_name: dbt
+[0m03:43:55.232123 [info ] [MainThread]:   retries: 1
+[0m03:43:55.233384 [info ] [MainThread]: Registered adapter: postgres=1.8.2
+[0m03:43:55.332317 [debug] [MainThread]: Acquiring new postgres connection 'debug'
+[0m03:43:55.370354 [debug] [MainThread]: Using postgres connection "debug"
+[0m03:43:55.371682 [debug] [MainThread]: On debug: select 1 as id
+[0m03:43:55.372605 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m03:43:55.382168 [debug] [MainThread]: SQL status: SELECT 1 in 0.009 seconds
+[0m03:43:55.384207 [debug] [MainThread]: On debug: Close
+[0m03:43:55.385233 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m03:43:55.386323 [info ] [MainThread]: [32mAll checks passed![0m
+[0m03:43:55.388642 [debug] [MainThread]: Resource report: {"command_name": "debug", "command_success": true, "command_wall_clock_time": 0.5777086, "process_user_time": 1.97197, "process_kernel_time": 0.394394, "process_mem_max_rss": "114460", "process_in_blocks": "13304", "process_out_blocks": "5032"}
+[0m03:43:55.390049 [debug] [MainThread]: Command `dbt debug` succeeded at 03:43:55.389934 after 0.58 seconds
+[0m03:43:55.391014 [debug] [MainThread]: Connection 'debug' was properly closed.
+[0m03:43:55.392113 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x72323ed947a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x72323e4a7b90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x72323f630290>]}
+[0m03:43:55.393383 [debug] [MainThread]: Flushing usage events
