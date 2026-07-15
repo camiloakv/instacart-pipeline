@@ -7,12 +7,11 @@ Usage:
 
 Reads Postgres connection details from environment variables (same ones
 used across the project): POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB,
-POSTGRES_HOST, POSTGRES_PORT.
+POSTGRES_HOST_LOCAL, POSTGRES_PORT.
 """
 
 import os
 
-import numpy as np
 import pandas as pd
 import psycopg2
 import xgboost as xgb
@@ -55,7 +54,9 @@ def load_features_from_postgres() -> pd.DataFrame:
         password=os.environ["POSTGRES_PASSWORD"],
         dbname=os.environ["POSTGRES_DB"],
     )
-    print("CONN CREATED")
+    # Sampling ~10% of users (via a cheap, deterministic modulo filter) --
+    # this project's focus is dbt/FastAPI, not squeezing out model accuracy,
+    # so trading data volume for fast iteration is the right call here.
     query = """
         select
             user_id, product_id,
@@ -68,29 +69,40 @@ def load_features_from_postgres() -> pd.DataFrame:
             aisle_id, department_id,
             target_reordered
         from dbt_dev.fct_user_product_features
+        where mod(user_id, 10) = 0
     """
     with conn.cursor() as cur:
         cur.execute(query)
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
-    print("FETCHED")
     conn.close()
-    print("CONN CLOSED")
     return pd.DataFrame(rows, columns=columns)
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     # Normalized reorder ratio -- often more informative than raw counts alone
     df["up_reorder_ratio"] = df["up_times_reordered"] / df["up_times_ordered"]
+
+    # psycopg2 returns Postgres NUMERIC/AVG results as Python Decimal objects,
+    # which pandas stores as 'object' dtype -- XGBoost requires numeric dtypes,
+    # so cast everything explicitly to float here.
+    numeric_cols = [c for c in FEATURE_COLUMNS if c not in ("aisle_id", "department_id")]
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce").astype(float)
+
+    df["aisle_id"] = pd.to_numeric(df["aisle_id"], errors="coerce").astype(int)
+    df["department_id"] = pd.to_numeric(df["department_id"], errors="coerce").astype(int)
+
     return df
 
 
 def main():
-    print("Loading features from Postgres...")
+    print("Loading features from Postgres (sampled ~10% of users)...")
     df = load_features_from_postgres()
     print(f"Loaded {len(df):,} rows")
 
     df = engineer_features(df)
+    df = df.dropna(subset=FEATURE_COLUMNS + [TARGET_COLUMN])
 
     X = df[FEATURE_COLUMNS]
     y = df[TARGET_COLUMN]
@@ -112,9 +124,9 @@ def main():
     model = xgb.XGBClassifier(
         objective="binary:logistic",
         eval_metric="logloss",
-        max_depth=6,
+        max_depth=5,
         learning_rate=0.1,
-        n_estimators=300,
+        n_estimators=100,
         subsample=0.8,
         colsample_bytree=0.8,
         min_child_weight=5,
