@@ -77,11 +77,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST_LOCAL: postgres
       DBT_PROFILES_DIR: /opt/airflow/dbt
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./data:/opt/airflow/data
       - ./dbt:/opt/airflow/dbt
+      - ./ml:/opt/airflow/ml
     command: scheduler
 
   api:

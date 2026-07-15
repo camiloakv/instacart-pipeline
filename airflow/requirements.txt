@@ -2,3 +2,6 @@ pandas==2.2.2
 psycopg2-binary==2.9.9
 dbt-core==1.8.2
 dbt-postgres==1.8.2
+xgboost==2.1.1
+scikit-learn==1.5.1
+python-dotenv==1.0.1
