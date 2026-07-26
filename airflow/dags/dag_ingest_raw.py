@@ -18,6 +18,7 @@ import psycopg2
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 # Maps table name -> CSV filename. All files live under /opt/airflow/data/raw
 # (mounted from ./data/raw on the host, per docker-compose.yml)
@@ -69,7 +70,7 @@ def load_table_to_postgres(table_name: str, csv_filename: str):
                     f'"{col}" {_pg_type_for(dtype)}'
                     for col, dtype in zip(chunk.columns, chunk.dtypes)
                 )
-                cur.execute(f'DROP TABLE IF EXISTS raw."{table_name}";')
+                cur.execute(f'DROP TABLE IF EXISTS raw."{table_name}" CASCADE;')
                 cur.execute(f'CREATE TABLE raw."{table_name}" ({cols_sql});')
 
             # Stream the chunk into a CSV buffer, then COPY it in
@@ -93,9 +94,18 @@ with DAG(
     tags=["ingest", "instacart"],
 ) as dag:
 
-    for table_name, csv_filename in TABLES.items():
+    load_tasks = [
         PythonOperator(
             task_id=f"load_{table_name}",
             python_callable=load_table_to_postgres,
             op_kwargs={"table_name": table_name, "csv_filename": csv_filename},
         )
+        for table_name, csv_filename in TABLES.items()
+    ]
+
+    trigger_dbt = TriggerDagRunOperator(
+        task_id="trigger_dbt_run",
+        trigger_dag_id="dag_run_dbt",
+    )
+
+    load_tasks >> trigger_dbt
