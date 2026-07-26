@@ -2,7 +2,8 @@
 .env
 
 # --- Data ---
-data/raw/
+data/raw/*
+!data/raw/.gitkeep
 data/processed/
 *.csv
 *.zip
