@@ -2,6 +2,7 @@
 .env
 
 # --- Data ---
+# keep data/raw/ folder structure to be later filled by user
 data/raw/*
 !data/raw/.gitkeep
 data/processed/
