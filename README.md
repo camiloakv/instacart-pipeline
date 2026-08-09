@@ -41,9 +41,14 @@ Simple ML model served via API
   AIRFLOW_ADMIN_PASSWORD=some_password
   ```
 
+- Open Docker Desktop to start the engine.
+
 - Set up the containers:
   ```bash
+  # build all images from scratch, it could take a few minutes
   docker compose build --no-cache
+
+  # start everything
   docker compose up -d
 
   # one-time dbt package install
@@ -51,6 +56,9 @@ Simple ML model served via API
 
   # kick off the whole chain
   docker compose exec airflow-scheduler airflow dags trigger dag_ingest_raw
+
+  # optionally, check the status of the project
+  docker compose ps -a
   ```
 
 - Check/trigger DAGs at `http://localhost:8080/home` > `dag_ingest_raw`. Login with `AIRFLOW_ADMIN_USER`, `AIRFLOW_ADMIN_PASSWORD` set above.
