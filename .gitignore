@@ -13,6 +13,7 @@ data/processed/
 dbt/dbt_packages/
 dbt/target/
 dbt/logs/
+dbt/logs/dbt.log
 
 # --- Airflow ---
 airflow/logs/
