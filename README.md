@@ -61,12 +61,18 @@ Simple ML model served via API
   docker compose ps -a
   ```
 
-- Check/trigger DAGs at `http://localhost:8080/home` > `dag_ingest_raw`. Login with `AIRFLOW_ADMIN_USER`, `AIRFLOW_ADMIN_PASSWORD` set above.
-- (_Optionally_) Query from dbt view, e.g.:
+- Check/trigger DAGs at the Airflow UI: `http://localhost:8080/home` > `dag_ingest_raw`.
+  - Login with `AIRFLOW_ADMIN_USER`, `AIRFLOW_ADMIN_PASSWORD` set above.
+  - The `docker compose exec airflow-scheduler airflow dags trigger dag_ingest_raw` command above is equivalent to the Trigger DAG (▶ button at the top right) in `http://localhost:8080/dags/dag_ingest_raw/grid`.
+
+<!-- grab a valid pair from the feature table: -->
+- _Optionally_, query from dbt views, e.g.:
   ```bash
   docker compose exec postgres psql -U airflow_user -d instacart -c "SELECT user_id, product_id FROM dbt_dev.fct_user_product_features LIMIT 1;"
   ```
 
+<!-- http://localhost:8000/docs -->
+<!-- http://localhost:8000/redoc -->
 - Make an API request:
   ```bash
   Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8000/predict `
@@ -87,5 +93,6 @@ Simple ML model served via API
 
 ## Backlog
 
+- Scheduling (cron).
 - Download using Kaggle API token.
 - Simple frontend to select user and product.
