@@ -11,8 +11,11 @@ import os
 
 import psycopg2
 import xgboost as xgb
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import APIKeyHeader
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from schemas import PredictRequest, PredictResponse
 
@@ -20,6 +23,7 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model.json")
 API_KEY = os.environ["API_KEY"]
 
 api_key_header = APIKeyHeader(name="X-API-Key")
+limiter = Limiter(key_func=get_remote_address)
 
 # Must match the feature order/set used in ml/train.py
 FEATURE_COLUMNS = [
@@ -39,6 +43,8 @@ FEATURE_COLUMNS = [
 ]
 
 app = FastAPI(title="Instacart Reorder Prediction API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 model = xgb.XGBClassifier()
 model.load_model(MODEL_PATH)
@@ -91,13 +97,14 @@ def health():
 
 
 @app.post("/predict", response_model=PredictResponse, dependencies=[Depends(verify_api_key)])
-def predict(request: PredictRequest):
-    features = fetch_features(request.user_id, request.product_id)
+@limiter.limit("10/minute")
+def predict(request: Request, body: PredictRequest):
+    features = fetch_features(body.user_id, body.product_id)
     if features is None:
         raise HTTPException(
             status_code=404,
-            detail=f"No feature data found for user_id={request.user_id}, "
-                   f"product_id={request.product_id}. This pair may not "
+            detail=f"No feature data found for user_id={body.user_id}, "
+                   f"product_id={body.product_id}. This pair may not "
                    f"exist in the user's purchase history.",
         )
 
@@ -113,7 +120,7 @@ def predict(request: PredictRequest):
     probability = float(model.predict_proba(row)[0][1])
 
     return PredictResponse(
-        user_id=request.user_id,
-        product_id=request.product_id,
+        user_id=body.user_id,
+        product_id=body.product_id,
         reorder_probability=round(probability, 4),
     )
