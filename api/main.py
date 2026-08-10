@@ -11,12 +11,15 @@ import os
 
 import psycopg2
 import xgboost as xgb
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import APIKeyHeader
 
 from schemas import PredictRequest, PredictResponse
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model.json")
 API_KEY = os.environ["API_KEY"]
+
+api_key_header = APIKeyHeader(name="X-API-Key")
 
 # Must match the feature order/set used in ml/train.py
 FEATURE_COLUMNS = [
@@ -41,7 +44,7 @@ model = xgb.XGBClassifier()
 model.load_model(MODEL_PATH)
 
 
-def verify_api_key(x_api_key: str = Header(...)):
+def verify_api_key(x_api_key: str = Depends(api_key_header)):
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
