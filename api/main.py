@@ -11,11 +11,12 @@ import os
 
 import psycopg2
 import xgboost as xgb
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 
 from schemas import PredictRequest, PredictResponse
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model.json")
+API_KEY = os.environ["API_KEY"]
 
 # Must match the feature order/set used in ml/train.py
 FEATURE_COLUMNS = [
@@ -38,6 +39,11 @@ app = FastAPI(title="Instacart Reorder Prediction API")
 
 model = xgb.XGBClassifier()
 model.load_model(MODEL_PATH)
+
+
+def verify_api_key(x_api_key: str = Header(...)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
 def get_connection():
@@ -81,7 +87,7 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/predict", response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse, dependencies=[Depends(verify_api_key)])
 def predict(request: PredictRequest):
     features = fetch_features(request.user_id, request.product_id)
     if features is None:
