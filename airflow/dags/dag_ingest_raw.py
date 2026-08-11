@@ -88,7 +88,7 @@ def load_table_to_postgres(table_name: str, csv_filename: str):
 with DAG(
     dag_id="dag_ingest_raw",
     description="Load Instacart CSVs into Postgres raw schema",
-    schedule=None,  # manual trigger for now; can add a cron schedule later
+    schedule="45 11 * * *",  # daily at 3:00 AM -- cascades into dag_run_dbt -> dag_train_model
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["ingest", "instacart"],
