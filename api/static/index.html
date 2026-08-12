@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reorder Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAF6EE;
+    --paper-shadow: #EDE6D6;
+    --ink: #232019;
+    --ink-soft: #948C7E;
+    --green: #4A7856;
+    --red: #B8433D;
+    --rule: #D8D0BE;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #E4DECD;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(0,0,0,0.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(0,0,0,0.03) 0%, transparent 40%);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+
+  .receipt {
+    width: 100%;
+    max-width: 380px;
+    background: var(--paper);
+    box-shadow: 0 24px 48px -12px rgba(35, 32, 25, 0.25);
+    padding: 32px 28px 0;
+    position: relative;
+  }
+
+  .receipt::before {
+    content: "";
+    display: block;
+    height: 14px;
+    margin: 0 -28px 24px;
+    background-image: radial-gradient(circle, #E4DECD 5px, transparent 5.5px);
+    background-size: 16px 16px;
+    background-position: -8px -8px;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .brand-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+
+  .rule {
+    border: none;
+    border-top: 1px dashed var(--rule);
+    margin: 20px 0;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    padding: 6px 2px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .field input:focus {
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .field input::placeholder {
+    color: #C9C1AE;
+  }
+
+  button {
+    width: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px;
+    cursor: pointer;
+    margin: 8px 0 24px;
+    transition: opacity 0.15s ease;
+  }
+
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .result {
+    display: none;
+    padding-bottom: 32px;
+    text-align: center;
+  }
+
+  .result.visible { display: block; }
+
+  .result-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  .result-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+
+  .stamp {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    transform: rotate(-3deg);
+  }
+
+  .stamp.likely { color: var(--green); }
+  .stamp.unlikely { color: var(--red); }
+
+  .error {
+    display: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--red);
+    text-align: center;
+    padding-bottom: 24px;
+  }
+
+  .error.visible { display: block; }
+
+  .torn {
+    height: 16px;
+    margin: 0 -28px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0,
+      linear-gradient(-135deg, var(--paper) 50%, transparent 50%) 0 0;
+    background-size: 16px 16px;
+    background-repeat: repeat-x;
+    background-color: #E4DECD;
+  }
+</style>
+</head>
+<body>
+
+  <div class="receipt">
+    <div class="brand">
+      <div class="brand-title">Reorder Check</div>
+      <div class="brand-sub">Instacart &middot; XGBoost prediction</div>
+    </div>
+
+    <hr class="rule">
+
+    <div class="field">
+      <label for="apiKey">API Key</label>
+      <input type="password" id="apiKey" placeholder="X-API-Key" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="userId">User ID</label>
+      <input type="number" id="userId" placeholder="e.g. 175009">
+    </div>
+    <div class="field">
+      <label for="productId">Product ID</label>
+      <input type="number" id="productId" placeholder="e.g. 40706">
+    </div>
+
+    <button id="submitBtn" type="button">Check</button>
+
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+      <div class="result-label">Reorder probability</div>
+      <div class="result-value" id="resultValue">--</div>
+      <div class="stamp" id="stamp">--</div>
+    </div>
+  </div>
+
+  <div class="torn" style="max-width: 380px; margin-left: auto; margin-right: auto;"></div>
+
+<script>
+  const btn = document.getElementById('submitBtn');
+  const resultEl = document.getElementById('result');
+  const errorEl = document.getElementById('error');
+  const resultValueEl = document.getElementById('resultValue');
+  const stampEl = document.getElementById('stamp');
+
+  async function checkReorder() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const userId = document.getElementById('userId').value.trim();
+    const productId = document.getElementById('productId').value.trim();
+
+    resultEl.classList.remove('visible');
+    errorEl.classList.remove('visible');
+
+    if (!apiKey || !userId || !productId) {
+      errorEl.textContent = 'All fields are required.';
+      errorEl.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+
+    try {
+      const response = await fetch('/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: JSON.stringify({
+          user_id: parseInt(userId, 10),
+          product_id: parseInt(productId, 10),
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const detail = body.detail || `Request failed (${response.status})`;
+        throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      }
+
+      const data = await response.json();
+      const pct = (data.reorder_probability * 100).toFixed(1);
+
+      resultValueEl.textContent = pct + '%';
+      if (data.reorder_probability >= 0.5) {
+        stampEl.textContent = 'Likely reorder';
+        stampEl.className = 'stamp likely';
+      } else {
+        stampEl.textContent = 'Unlikely reorder';
+        stampEl.className = 'stamp unlikely';
+      }
+      resultEl.classList.add('visible');
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.classList.add('visible');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Check';
+    }
+  }
+
+  btn.addEventListener('click', checkReorder);
+  document.getElementById('productId').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') checkReorder();
+  });
+</script>
+
+</body>
+</html>

@@ -12,6 +12,7 @@ import os
 import psycopg2
 import xgboost as xgb
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse
 from fastapi.security import APIKeyHeader
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -94,6 +95,12 @@ def fetch_features(user_id: int, product_id: int) -> dict:
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/")
+def frontend():
+    static_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    return FileResponse(static_path)
 
 
 @app.post("/predict", response_model=PredictResponse, dependencies=[Depends(verify_api_key)])
