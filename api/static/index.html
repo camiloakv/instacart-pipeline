@@ -270,8 +270,22 @@
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        const detail = body.detail || `Request failed (${response.status})`;
-        throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+        let message = `Request failed (${response.status})`;
+
+        if (Array.isArray(body.detail)) {
+          // FastAPI/Pydantic validation errors (422) come as a list of
+          // per-field error objects rather than a plain string.
+          message = body.detail
+            .map((e) => {
+              const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : 'field';
+              return `${field}: ${e.msg}`;
+            })
+            .join(' \u2022 ');
+        } else if (typeof body.detail === 'string') {
+          message = body.detail;
+        }
+
+        throw new Error(message);
       }
 
       const data = await response.json();
