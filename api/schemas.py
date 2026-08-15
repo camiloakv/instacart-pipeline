@@ -10,3 +10,13 @@ class PredictResponse(BaseModel):
     user_id: int
     product_id: int
     reorder_probability: float
+
+
+class QueryRequest(BaseModel):
+    sql: str = Field(..., min_length=1, max_length=2000)
+
+
+class QueryResponse(BaseModel):
+    columns: list[str]
+    rows: list[list]
+    row_count: int

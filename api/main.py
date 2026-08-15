@@ -8,6 +8,7 @@ POST /predict {"user_id": ..., "product_id": ...}
 """
 
 import os
+import re
 
 import psycopg2
 import xgboost as xgb
@@ -18,7 +19,15 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from schemas import PredictRequest, PredictResponse
+from schemas import PredictRequest, PredictResponse, QueryRequest, QueryResponse
+
+# Layer 2 (application-level) of the query console's defense-in-depth
+# design: only these leading keywords are allowed through at all, checked
+# BEFORE the query ever reaches Postgres. This is intentionally independent
+# of Layer 1 (the db_viewer role's grants) and Layer 3 (the read-only
+# transaction wrapper we'll add next) -- each layer assumes the others
+# might fail.
+ALLOWED_STATEMENT_PREFIXES = ("select", "explain", "show")
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model.json")
 API_KEY = os.environ["API_KEY"]
@@ -101,6 +110,76 @@ def health():
 def frontend():
     static_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
     return FileResponse(static_path)
+
+
+def get_db_viewer_connection():
+    return psycopg2.connect(
+        host=os.environ.get("POSTGRES_HOST", "postgres"),
+        port=os.environ.get("POSTGRES_PORT", "5432"),
+        user="db_viewer",
+        password=os.environ["DB_VIEWER_PASSWORD"],
+        dbname=os.environ["POSTGRES_DB"],
+    )
+
+
+def validate_readonly_statement(sql: str) -> None:
+    # Strip SQL comments and surrounding whitespace before inspecting the
+    # statement -- otherwise "-- comment\nDELETE ..." would slip past a
+    # naive prefix check.
+    stripped = re.sub(r"--[^\n]*", "", sql)
+    stripped = re.sub(r"/\*.*?\*/", "", stripped, flags=re.DOTALL)
+    stripped = stripped.strip()
+
+    if not stripped:
+        raise HTTPException(status_code=400, detail="Query is empty.")
+
+    # Reject stacked statements (e.g. "SELECT 1; DELETE FROM orders;") --
+    # only a single statement is allowed through. A trailing semicolon on
+    # an otherwise single statement is fine.
+    without_trailing_semicolon = stripped.rstrip(";").strip()
+    if ";" in without_trailing_semicolon:
+        raise HTTPException(
+            status_code=400,
+            detail="Only a single SQL statement is allowed per request.",
+        )
+
+    first_word = re.match(r"^([a-zA-Z]+)", without_trailing_semicolon)
+    keyword = first_word.group(1).lower() if first_word else ""
+
+    if keyword not in ALLOWED_STATEMENT_PREFIXES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only {', '.join(ALLOWED_STATEMENT_PREFIXES)} statements "
+                   f"are allowed. This is a read-only query console.",
+        )
+
+
+@app.post("/admin/query", response_model=QueryResponse, dependencies=[Depends(verify_api_key)])
+@limiter.limit("10/minute")
+def run_query(request: Request, body: QueryRequest):
+    validate_readonly_statement(body.sql)
+
+    conn = get_db_viewer_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(body.sql)
+            if cur.description is None:
+                # Statement executed but returned no result set (e.g. SHOW
+                # with no output) -- shouldn't normally happen given our
+                # allowlist, but handled defensively.
+                return QueryResponse(columns=[], rows=[], row_count=0)
+
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+            # Convert each row's values to JSON-safe types (Decimal, date,
+            # etc. aren't natively JSON-serializable).
+            safe_rows = [[str(v) if v is not None else None for v in row] for row in rows]
+
+            return QueryResponse(columns=columns, rows=safe_rows, row_count=len(safe_rows))
+    except psycopg2.Error as e:
+        raise HTTPException(status_code=400, detail=str(e).strip())
+    finally:
+        conn.close()
 
 
 @app.post("/predict", response_model=PredictResponse, dependencies=[Depends(verify_api_key)])
