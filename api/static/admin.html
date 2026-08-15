@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Query Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1B1D1E;
+    --panel: #232527;
+    --border: #34373A;
+    --text: #D8DEE2;
+    --text-dim: #7A8288;
+    --amber: #D7A85B;
+    --green: #7EC699;
+    --red: #E0776D;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text);
+    padding: 32px 20px;
+  }
+
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .titlebar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .titlebar h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin: 0;
+    color: var(--amber);
+  }
+
+  .titlebar .role-tag {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  input[type="password"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 9px 10px;
+    outline: none;
+  }
+
+  input[type="password"]:focus { border-color: var(--amber); }
+
+  .query-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .prompt {
+    color: var(--green);
+    font-size: 14px;
+    line-height: 1.6;
+    padding-top: 9px;
+    user-select: none;
+  }
+
+  textarea {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 9px 10px;
+    resize: vertical;
+    min-height: 84px;
+    outline: none;
+  }
+
+  textarea:focus { border-color: var(--amber); }
+
+  .hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  .run-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+
+  button {
+    background: var(--amber);
+    color: #1B1D1E;
+    border: none;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+
+  button:hover { opacity: 0.88; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status {
+    display: none;
+    font-size: 12px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  .status.visible { display: block; }
+  .status.error { background: rgba(224, 119, 109, 0.12); color: var(--red); border: 1px solid rgba(224, 119, 109, 0.3); }
+  .status.ok { background: rgba(126, 198, 153, 0.1); color: var(--green); border: 1px solid rgba(126, 198, 153, 0.28); }
+
+  .results-wrap {
+    display: none;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .results-wrap.visible { display: block; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  thead th {
+    text-align: left;
+    background: #2A2D2F;
+    color: var(--amber);
+    padding: 9px 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+  }
+
+  tbody td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #2A2D2F;
+    color: var(--text);
+  }
+
+  tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.015); }
+  tbody tr:hover { background: rgba(215, 168, 91, 0.06); }
+
+  td.null-cell {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="titlebar">
+    <h1>QUERY CONSOLE</h1>
+    <span class="role-tag">db_viewer &middot; read-only</span>
+  </div>
+
+  <div class="panel">
+    <label for="apiKey">API Key</label>
+    <input type="password" id="apiKey" placeholder="X-API-Key" autocomplete="off">
+  </div>
+
+  <div class="panel">
+    <label for="sqlInput">Query</label>
+    <div class="query-row">
+      <span class="prompt">&gt;</span>
+      <textarea id="sqlInput" placeholder="select * from dbt_dev.fct_user_product_features limit 10;" spellcheck="false"></textarea>
+    </div>
+    <div class="hint">SELECT / EXPLAIN / SHOW only &middot; single statement &middot; capped at 500 rows &middot; 5s timeout</div>
+    <div class="run-row">
+      <button id="runBtn" type="button">Run &middot; Ctrl+Enter</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="results-wrap" id="resultsWrap">
+    <table id="resultsTable">
+      <thead><tr id="tableHead"></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const runBtn = document.getElementById('runBtn');
+  const statusEl = document.getElementById('status');
+  const resultsWrap = document.getElementById('resultsWrap');
+  const tableHead = document.getElementById('tableHead');
+  const tableBody = document.getElementById('tableBody');
+  const sqlInput = document.getElementById('sqlInput');
+
+  function setStatus(message, type) {
+    statusEl.textContent = message;
+    statusEl.className = 'status visible ' + type;
+  }
+
+  function clearStatus() {
+    statusEl.className = 'status';
+  }
+
+  async function runQuery() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const sql = sqlInput.value.trim();
+
+    clearStatus();
+    resultsWrap.classList.remove('visible');
+
+    if (!apiKey || !sql) {
+      setStatus('API key and query are both required.', 'error');
+      return;
+    }
+
+    runBtn.disabled = true;
+    runBtn.textContent = 'Running...';
+
+    try {
+      const response = await fetch('/admin/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: JSON.stringify({ sql }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        let message = `Request failed (${response.status})`;
+        if (Array.isArray(data.detail)) {
+          message = data.detail.map((e) => {
+            const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : 'field';
+            return `${field}: ${e.msg}`;
+          }).join(' \u2022 ');
+        } else if (typeof data.detail === 'string') {
+          message = data.detail;
+        }
+        setStatus(message, 'error');
+        return;
+      }
+
+      renderResults(data);
+      setStatus(`${data.row_count} row(s) returned.`, 'ok');
+    } catch (err) {
+      setStatus(err.message, 'error');
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = 'Run \u00b7 Ctrl+Enter';
+    }
+  }
+
+  function renderResults(data) {
+    tableHead.innerHTML = '';
+    tableBody.innerHTML = '';
+
+    if (!data.columns || data.columns.length === 0) {
+      resultsWrap.classList.remove('visible');
+      return;
+    }
+
+    data.columns.forEach((col) => {
+      const th = document.createElement('th');
+      th.textContent = col;
+      tableHead.appendChild(th);
+    });
+
+    data.rows.forEach((row) => {
+      const tr = document.createElement('tr');
+      row.forEach((val) => {
+        const td = document.createElement('td');
+        if (val === null) {
+          td.textContent = 'null';
+          td.className = 'null-cell';
+        } else {
+          td.textContent = val;
+        }
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
+
+    resultsWrap.classList.add('visible');
+  }
+
+  runBtn.addEventListener('click', runQuery);
+  sqlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runQuery();
+  });
+</script>
+
+</body>
+</html>

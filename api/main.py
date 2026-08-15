@@ -112,6 +112,12 @@ def frontend():
     return FileResponse(static_path)
 
 
+@app.get("/admin")
+def admin_frontend():
+    static_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
+    return FileResponse(static_path)
+
+
 def get_db_viewer_connection():
     return psycopg2.connect(
         host=os.environ.get("POSTGRES_HOST", "postgres"),
