@@ -169,6 +169,14 @@ def run_query(request: Request, body: QueryRequest):
         conn.set_session(readonly=True)
 
         with conn.cursor() as cur:
+            # Layer 4 of the defense-in-depth design: even a genuinely
+            # read-only query can still cause harm -- an accidental full
+            # scan of a 32M-row table could tie up Postgres for everyone
+            # else using it (Airflow, dbt, /predict). This isn't a security
+            # control against malicious SQL, it's protection against
+            # resource exhaustion / self-inflicted denial of service.
+            cur.execute("SET statement_timeout = '50000'")  # milliseconds
+
             cur.execute(body.sql)
             if cur.description is None:
                 # Statement executed but returned no result set (e.g. SHOW
@@ -177,7 +185,8 @@ def run_query(request: Request, body: QueryRequest):
                 return QueryResponse(columns=[], rows=[], row_count=0)
 
             columns = [desc[0] for desc in cur.description]
-            rows = cur.fetchall()
+            MAX_ROWS = 500
+            rows = cur.fetchmany(MAX_ROWS)
             # Convert each row's values to JSON-safe types (Decimal, date,
             # etc. aren't natively JSON-serializable).
             safe_rows = [[str(v) if v is not None else None for v in row] for row in rows]
