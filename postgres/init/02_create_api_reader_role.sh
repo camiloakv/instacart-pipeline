@@ -22,4 +22,24 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     -- automatically -- this is what actually matters here, since dbt_dev
     -- is empty at the time this script runs.
     ALTER DEFAULT PRIVILEGES IN SCHEMA dbt_dev GRANT SELECT ON TABLES TO api_reader;
+
+    -- db_viewer: broad READ-ONLY visibility across every schema, for an
+    -- internal ad-hoc query console. Deliberately NOT airflow_user (which
+    -- is Postgres's superuser) and NOT granted any write/DDL/role-creation
+    -- privileges -- see Layer 1 of the query console's defense-in-depth
+    -- design (role scoping is only one of several independent layers).
+    CREATE ROLE db_viewer WITH LOGIN PASSWORD '$DB_VIEWER_PASSWORD';
+    GRANT CONNECT ON DATABASE $POSTGRES_DB TO db_viewer;
+
+    GRANT USAGE ON SCHEMA public TO db_viewer;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO db_viewer;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO db_viewer;
+
+    GRANT USAGE ON SCHEMA raw TO db_viewer;
+    GRANT SELECT ON ALL TABLES IN SCHEMA raw TO db_viewer;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA raw GRANT SELECT ON TABLES TO db_viewer;
+
+    GRANT USAGE ON SCHEMA dbt_dev TO db_viewer;
+    GRANT SELECT ON ALL TABLES IN SCHEMA dbt_dev TO db_viewer;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA dbt_dev GRANT SELECT ON TABLES TO db_viewer;
 EOSQL
