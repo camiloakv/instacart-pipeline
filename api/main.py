@@ -175,9 +175,20 @@ def run_query(request: Request, body: QueryRequest):
             # else using it (Airflow, dbt, /predict). This isn't a security
             # control against malicious SQL, it's protection against
             # resource exhaustion / self-inflicted denial of service.
-            cur.execute("SET statement_timeout = '50000'")  # milliseconds
+            cur.execute("SET statement_timeout = '5000'")  # milliseconds
 
-            cur.execute(body.sql)
+            MAX_ROWS = 500
+            # Wrapping in a subquery with LIMIT enforces the cap at the
+            # query-planning level -- Postgres itself only computes/
+            # transfers up to MAX_ROWS rows. A client-side fetchmany()
+            # alone does NOT achieve this: psycopg2's default cursor
+            # buffers the ENTIRE result set before any Python-side
+            # slicing happens, so the full (potentially 32M-row) result
+            # would already have been computed and transferred first.
+            statement_without_semicolon = body.sql.rstrip(";").strip()
+            wrapped_sql = f"SELECT * FROM ({statement_without_semicolon}) AS _capped_query LIMIT {MAX_ROWS}"
+
+            cur.execute(wrapped_sql)
             if cur.description is None:
                 # Statement executed but returned no result set (e.g. SHOW
                 # with no output) -- shouldn't normally happen given our
@@ -185,8 +196,7 @@ def run_query(request: Request, body: QueryRequest):
                 return QueryResponse(columns=[], rows=[], row_count=0)
 
             columns = [desc[0] for desc in cur.description]
-            MAX_ROWS = 500
-            rows = cur.fetchmany(MAX_ROWS)
+            rows = cur.fetchall()
             # Convert each row's values to JSON-safe types (Decimal, date,
             # etc. aren't natively JSON-serializable).
             safe_rows = [[str(v) if v is not None else None for v in row] for row in rows]
