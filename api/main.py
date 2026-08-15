@@ -161,6 +161,13 @@ def run_query(request: Request, body: QueryRequest):
 
     conn = get_db_viewer_connection()
     try:
+        # Layer 3 of the defense-in-depth design: force this transaction
+        # into Postgres's own READ ONLY mode. Even if Layer 1 (role grants)
+        # or Layer 2 (keyword allowlist) were ever wrong or bypassed, the
+        # database engine itself now refuses any write/DDL inside this
+        # transaction -- this check doesn't trust our own application code.
+        conn.set_session(readonly=True)
+
         with conn.cursor() as cur:
             cur.execute(body.sql)
             if cur.description is None:
