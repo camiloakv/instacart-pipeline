@@ -5,3 +5,4 @@ dbt-postgres==1.8.2
 xgboost==2.1.1
 scikit-learn==1.5.1
 python-dotenv==1.0.1
+mlflow==2.16.0

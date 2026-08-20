@@ -7,11 +7,13 @@ Usage:
 
 Reads Postgres connection details from environment variables (same ones
 used across the project): POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB,
-POSTGRES_HOST_LOCAL, POSTGRES_PORT.
+POSTGRES_HOST, POSTGRES_PORT.
 """
 
 import os
 
+import mlflow
+import mlflow.xgboost
 import pandas as pd
 import psycopg2
 import xgboost as xgb
@@ -24,6 +26,7 @@ from sklearn.model_selection import GroupShuffleSplit
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 MODEL_OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "models", "model.json")
+MLFLOW_EXPERIMENT_NAME = "instacart_reorder_prediction"
 
 # Features fed to the model. Excludes identifiers (user_id, product_id),
 # high-cardinality text (product_name), and the target itself.
@@ -121,44 +124,73 @@ def main():
     print(f"Train class balance -- pos: {pos_count:,}, neg: {neg_count:,}, "
           f"scale_pos_weight: {scale_pos_weight:.2f}")
 
-    model = xgb.XGBClassifier(
-        objective="binary:logistic",
-        eval_metric="logloss",
-        max_depth=5,
-        learning_rate=0.1,
-        n_estimators=100,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        min_child_weight=5,
-        scale_pos_weight=scale_pos_weight,
-        random_state=42,
-        n_jobs=-1,
-    )
+    model_params = {
+        "objective": "binary:logistic",
+        "eval_metric": "logloss",
+        "max_depth": 6,
+        "learning_rate": 0.1,
+        "n_estimators": 300,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "min_child_weight": 5,
+        "scale_pos_weight": scale_pos_weight,
+        "random_state": 42,
+        "n_jobs": -1,
+    }
 
-    print("Training model...")
-    model.fit(
-        X_train, y_train,
-        eval_set=[(X_test, y_test)],
-        verbose=False,
-    )
+    with mlflow.start_run():
+        # Dataset shape/context -- useful when comparing runs later, e.g.
+        # "did accuracy drop because of a code change, or just more data?"
+        mlflow.log_param("n_rows_total", len(df))
+        mlflow.log_param("n_rows_train", len(X_train))
+        mlflow.log_param("n_rows_test", len(X_test))
+        mlflow.log_param("n_features", len(FEATURE_COLUMNS))
+        mlflow.log_params(model_params)
 
-    # Evaluation
-    y_pred_proba = model.predict_proba(X_test)[:, 1]
-    y_pred = (y_pred_proba >= 0.5).astype(int)
+        model = xgb.XGBClassifier(**model_params)
 
-    print("\n--- Evaluation on held-out users ---")
-    print(f"AUC:      {roc_auc_score(y_test, y_pred_proba):.4f}")
-    print(f"LogLoss:  {log_loss(y_test, y_pred_proba):.4f}")
-    print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+        print("Training model...")
+        model.fit(
+            X_train, y_train,
+            eval_set=[(X_test, y_test)],
+            verbose=False,
+        )
 
-    # Feature importance
-    print("\n--- Feature importance ---")
-    importances = pd.Series(model.feature_importances_, index=FEATURE_COLUMNS)
-    print(importances.sort_values(ascending=False).to_string())
+        # Evaluation
+        y_pred_proba = model.predict_proba(X_test)[:, 1]
+        y_pred = (y_pred_proba >= 0.5).astype(int)
 
-    os.makedirs(os.path.dirname(MODEL_OUTPUT_PATH), exist_ok=True)
-    model.save_model(MODEL_OUTPUT_PATH)
-    print(f"\nModel saved to {MODEL_OUTPUT_PATH}")
+        auc = roc_auc_score(y_test, y_pred_proba)
+        logloss = log_loss(y_test, y_pred_proba)
+        accuracy = accuracy_score(y_test, y_pred)
+
+        print("\n--- Evaluation on held-out users ---")
+        print(f"AUC:      {auc:.4f}")
+        print(f"LogLoss:  {logloss:.4f}")
+        print(f"Accuracy: {accuracy:.4f}")
+
+        mlflow.log_metric("auc", auc)
+        mlflow.log_metric("logloss", logloss)
+        mlflow.log_metric("accuracy", accuracy)
+
+        # Feature importance -- logged as metrics so they're comparable
+        # across runs in MLflow's UI/API, not just visible in this run's logs
+        print("\n--- Feature importance ---")
+        importances = pd.Series(model.feature_importances_, index=FEATURE_COLUMNS)
+        print(importances.sort_values(ascending=False).to_string())
+        for feature, importance in importances.items():
+            mlflow.log_metric(f"importance_{feature}", float(importance))
+
+        # Logs the model itself as an MLflow artifact (versioned, downloadable,
+        # comparable across runs) -- in addition to our own local model.json
+        # that FastAPI reads from, kept for now to avoid changing how the
+        # API loads its model.
+        mlflow.xgboost.log_model(model, "model")
+
+        os.makedirs(os.path.dirname(MODEL_OUTPUT_PATH), exist_ok=True)
+        model.save_model(MODEL_OUTPUT_PATH)
+        print(f"\nModel saved to {MODEL_OUTPUT_PATH}")
+        print(f"Run logged to MLflow experiment '{MLFLOW_EXPERIMENT_NAME}'")
 
 
 if __name__ == "__main__":
