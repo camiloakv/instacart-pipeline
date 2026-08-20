@@ -1,0 +1,35 @@
+# --- Secrets ---
+.env
+
+# --- Data ---
+data/raw/
+data/processed/
+*.csv
+*.zip
+
+# --- dbt ---
+dbt/dbt_packages/
+dbt/target/
+dbt/logs/
+
+# --- Airflow ---
+airflow/logs/
+airflow/__pycache__/
+**/__pycache__/
+*.pyc
+
+# --- MLflow ---
+mlflow/artifacts/
+ml/models/*.json
+ml/models/*.pkl
+ml/models/*.joblib
+
+# --- Python ---
+.venv/
+venv/
+*.egg-info/
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
