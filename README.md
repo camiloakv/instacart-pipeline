@@ -4,6 +4,7 @@ Simple yet complete ML pipeline ready for production.
 <img src="https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white"/>
 <img src="https://img.shields.io/badge/dbt-FF694B?style=flat&logo=dbt&logoColor=white"/>
 <img src="https://img.shields.io/badge/Airflow-017CEE?style=flat&logo=Apache%20Airflow&logoColor=white"/>
+<img src="https://img.shields.io/badge/MLFlow-d9ead3?style=flat&logo=MLFlow&logoColor=blue"/>
 <img src="https://img.shields.io/badge/Docker-404D59?style=flat&logo=docker"/>
 <img src="https://img.shields.io/badge/XGBoost-FFFFFF?style=flat&color=2887D7"/>
 <img src="https://img.shields.io/badge/FastAPI-109989?style=flat&logo=FASTAPI&logoColor=white"/>
@@ -17,6 +18,7 @@ From the [Instacart market basket analysis dataset](https://www.kaggle.com/datas
  - Serving via FastAPI.
 
 <!--
+<img src="https://img.shields.io/badge/Pydantic-aaaaaa?logo=Pydantic" />
 
 ## Pipeline
 
@@ -96,3 +98,8 @@ Simple ML model served via API
 - Scheduling (cron).
 - Download using Kaggle API token.
 - Simple frontend to select user and product.
+<!--
+- Pydantic
+- DBT
+  - Data versioning
+-->
